@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 
-const port = process.env.PORT || 6666;
+const port = process.env.PORT || 8080;
 
 //connect to the database
 mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: true})
@@ -28,8 +28,8 @@ app.use(bodyParser.json());
 app.use('/api', routes);
 
 app.use((err, req, res, next) => {
-  console.log(err);
-  next();
+  console.error(err);
+  res.status(500).json({"statusCode": 500, "message": "InternalServerError"});
 });
 
 app.listen(port, () => {
