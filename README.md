@@ -8,3 +8,7 @@ local .env contains
 # Tools
 
 * yarn: npm install -g yarn
+
+# Objects
+
+* Persisted Game object with subDocuments. Initially the Game object will contain the live, full gamestate attributes of a given game

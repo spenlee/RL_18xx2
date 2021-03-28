@@ -1,9 +1,20 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const {PlayerSchema} = require('../models/player');
-const {BankSchema} = require('../models/bank');
+import { Document, model, Schema } from "mongoose"
+import { IBank, BankSchema } from './bank';
+import { IPlayer, PlayerSchema } from './player';
 
-const GameSchema = new Schema({
+export interface IGame extends Document {
+  priority_deal_player_number: number,
+  current_player_turn: number,
+  has_game_ended: boolean,
+  players: IPlayer[],
+  bank: IBank,
+  phase: string,
+  round_type: string,
+  round_number: number,
+  player_certificate_limit: number
+}
+
+export const GameSchema = new Schema({
   priority_deal_player_number: Number,
   current_player_turn: Number,
   has_game_ended: {type: Boolean, default: false},
@@ -23,6 +34,4 @@ const GameSchema = new Schema({
   player_certificate_limit: Number
 });
 
-const Game = mongoose.model('game', GameSchema);
-
-module.exports = Game;
+export const Game = model<IGame>('game', GameSchema);

@@ -1,24 +1,25 @@
-const express = require ('express');
-const router = express.Router();
-const Game = require('../models/game');
-const {Player} = require('../models/player');
-const {Bank} = require('../models/bank');
+import express from 'express';
+import {IGame, Game} from '../models/game';
+import {IPlayer, Player} from '../models/player';
+import {IBank, Bank} from '../models/bank';
 
-router.get('/game', (req, res, next) => {
+const router = express.Router();
+
+router.get('/game', (req: any, res: any, next: any) => {
   console.log("Hey dad");
   Game.find({})
-    .then(games => res.json(games))
+    .then((games: IGame[]) => res.json(games))
     .catch(next);
 });
 
-router.get('/game/:id', (req, res, next) => {
+router.get('/game/:id', (req: any, res: any, next: any) => {
   console.log("Hey dad ", req.params.id);
   Game.findById(req.params.id)
-    .then(game => res.json(game))
+    .then((game: IGame | any) => res.json(game))
     .catch(next);
 });
 
-router.post('/game', (req, res, next) => {
+router.post('/game', (req: any, res: any, next: any) => {
   console.log("Hey dad start a new game ", req.body);
 
   const numPlayers = req.body.numPlayers;
@@ -30,27 +31,27 @@ router.post('/game', (req, res, next) => {
   const newGame = initNewGame(numPlayers);
 
   newGame.save()
-    .then(game => res.json(game))
+    .then((game: IGame) => res.json(game))
     .catch(next);
 });
 
-router.delete('/game/:id', (req, res, next) => {
+router.delete('/game/:id', (req: any, res: any, next: any) => {
   console.log("Hey dad delete a new game", req.params.id);
 
   Game.deleteOne({"_id": req.params.id})
-    .then(data => res.json(data))
+    .then((data: any) => res.json(data))
     .catch(next);
 });
 
-router.delete('/game', (req, res, next) => {
+router.delete('/game', (req: any, res: any, next: any) => {
   console.log("Hey dad delete all the games");
 
   Game.deleteMany({})
-    .then(data => res.json(data))
+    .then((data: any) => res.json(data))
     .catch(next);
 });
 
-function initNewGame(numPlayers) {
+function initNewGame(numPlayers: number): IGame {
   const newGame = new Game();
 
   const players = [];
@@ -81,4 +82,4 @@ function initNewGame(numPlayers) {
   return newGame;
 };
 
-module.exports = router;
+export default router;
