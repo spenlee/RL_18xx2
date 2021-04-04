@@ -1,12 +1,12 @@
 import { Document, model, Schema } from "mongoose"
 
 export interface IPlayer extends Document {
-  player_number: number;
+  playerNumber: number;
   money: number;
 }
 
 export const PlayerSchema = new Schema({
-  player_number: Number,
+  playerNumber: Number,
   money: Number
 });
 

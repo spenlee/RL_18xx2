@@ -1,37 +1,59 @@
 import { Document, model, Schema } from "mongoose"
 import { IBank, BankSchema } from './bank';
 import { IPlayer, PlayerSchema } from './player';
+import { IPrivateCompany, PrivateCompanySchema } from './private_company';
+import { IMinorCompany, MinorCompanySchema } from './minor_company';
 
 export interface IGame extends Document {
-  priority_deal_player_number: number,
-  current_player_turn: number,
-  has_game_ended: boolean,
-  players: IPlayer[],
+  priorityDealPlayerNumber: number,
+  currentPlayerTurn: number,
+  hasGameEnded: boolean,
+  winningPlayer: IPlayer,
+  consecutivePasses: number,
+  playerMap: Map<string, IPlayer>,
   bank: IBank,
   phase: string,
-  round_type: string,
-  round_number: number,
-  player_certificate_limit: number
+  roundType: string,
+  roundNumber: number,
+  playerCertificateLimit: number,
+  privateCompanyMap: Map<string, IPrivateCompany>,
+  minorCompanyMap: Map<string, IMinorCompany>,
 }
 
 export const GameSchema = new Schema({
-  priority_deal_player_number: Number,
-  current_player_turn: Number,
-  has_game_ended: {type: Boolean, default: false},
-  players: [PlayerSchema],
+  priorityDealPlayerNumber: Number,
+  currentPlayerTurn: Number,
+  hasGameEnded: {type: Boolean, default: false},
+  winningPlayer: PlayerSchema,
+  consecutivePasses: {type: Number, default: 0},
+  playerMap: {
+    type: Map,
+    of: PlayerSchema,
+    default: {}
+  },
   bank: BankSchema,
   phase: {
     type: String,
     enum: ["1", "2", "3", "3.5"], // TODO: how many phases are there?
     default: "1"
   },
-  round_type: {
+  roundType: {
     type: String,
-    enum: ["AUCTION", "STOCK", "OPERATING", "MERGING"], // TODO: are there more round_types
+    enum: ["AUCTION", "PRIVATE_AUCTION", "STOCK", "OPERATING", "MERGING"],
     default: "AUCTION"
   },
-  round_number: {type: Number, default: 1},
-  player_certificate_limit: Number
+  roundNumber: {type: Number, default: 1},
+  playerCertificateLimit: Number,
+  privateCompanyMap: {
+    type: Map,
+    of: PrivateCompanySchema,
+    default: {}
+  },
+  minorCompanyMap: {
+    type: Map,
+    of: MinorCompanySchema,
+    default: {}
+  }
 });
 
 export const Game = model<IGame>('game', GameSchema);
