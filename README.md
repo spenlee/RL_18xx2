@@ -1,5 +1,13 @@
 NodeJS/Express/MongoDB using Mongo Atlas
 
+# Commands
+Installing dependencies, populating node_modules
+* yarn install
+Compiling
+* yarn run build
+Starting the server
+* yarn run start
+
 # Environment Variables
 
 local .env contains
@@ -8,6 +16,9 @@ local .env contains
 # Tools
 
 * yarn: npm install -g yarn
+
+Adding a dev-dependency, for example
+* yarn add @types/express --dev
 
 # Objects
 
