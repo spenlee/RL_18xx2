@@ -11,7 +11,7 @@ Starting the server
 # Environment Variables
 
 local .env contains
-* DB - mongoDB database connection string with username/password
+* DB - mongoDB database connection string with username/password. For example, `DB=dbconnectionstr`
 
 # Tools
 
