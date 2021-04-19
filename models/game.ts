@@ -3,6 +3,16 @@ import { IBank, BankSchema } from './bank';
 import { IPlayer, PlayerSchema } from './player';
 import { IPrivateCompany, PrivateCompanySchema } from './private_company';
 import { IMinorCompany, MinorCompanySchema } from './minor_company';
+import { IStockMarket, StockMarketSchema } from './stock_market';
+import { IMajorCompany, MajorCompanySchema } from './major_company';
+
+export interface PrivateOffer {
+  fromPlayerNumber: number,
+  toPlayerNumber: number,
+  type: string,
+  amount: number,
+  privateCompanyName: string
+}
 
 export interface IGame extends Document {
   priorityDealPlayerNumber: number,
@@ -18,6 +28,9 @@ export interface IGame extends Document {
   playerCertificateLimit: number,
   privateCompanyMap: Map<string, IPrivateCompany>,
   minorCompanyMap: Map<string, IMinorCompany>,
+  privateOffer: PrivateOffer,
+  stockMarket: IStockMarket,
+  majorCompanyMap: Map<string, IMajorCompany>,
 }
 
 export const GameSchema = new Schema({
@@ -39,7 +52,7 @@ export const GameSchema = new Schema({
   },
   roundType: {
     type: String,
-    enum: ["AUCTION", "PRIVATE_AUCTION", "STOCK", "OPERATING", "MERGING"],
+    enum: ["AUCTION", "PRIVATE_AUCTION", "STOCK", "OPERATING", "MERGING", "PRIVATE_OFFER"],
     default: "AUCTION"
   },
   roundNumber: {type: Number, default: 1},
@@ -53,7 +66,20 @@ export const GameSchema = new Schema({
     type: Map,
     of: MinorCompanySchema,
     default: {}
-  }
+  },
+  privateOffer: {
+    fromPlayerNumber: Number,
+    toPlayerNumber: Number,
+    type: String,
+    amount: Number,
+    privateCompanyName: String
+  },
+  stockMarket: StockMarketSchema,
+  majorCompanyMap: {
+    type: Map,
+    of: MajorCompanySchema,
+    default: {}
+  },
 });
 
 export const Game = model<IGame>('game', GameSchema);

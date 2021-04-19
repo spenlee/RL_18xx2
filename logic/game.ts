@@ -3,6 +3,18 @@ import {IPlayer, Player} from '../models/player';
 import {IBank, Bank} from '../models/bank';
 import {IPrivateCompany, PrivateCompany} from '../models/private_company';
 import {IMinorCompany, MinorCompany} from '../models/minor_company';
+import {IStockMarket, StockMarket, MappedRow} from '../models/stock_market';
+import {IMajorCompany, MajorCompany, StockCertificates} from '../models/major_company';
+
+// delegated Response from a function that isn't a routed API
+export interface Response {
+  // hasRes determines if there are values for status, error, and message
+  hasRes: boolean;
+  status?: number;
+  error?: string;
+  message?: string;
+  values?: any;
+}
 
 export function initNewGame(numPlayers: number): IGame {
   const newGame = new Game();
@@ -35,6 +47,8 @@ export function initNewGame(numPlayers: number): IGame {
 
   newGame.privateCompanyMap = initPrivateCompanies();
   newGame.minorCompanyMap = initMinorCompanies();
+  newGame.stockMarket = initStockMarket();
+  newGame.majorCompanyMap = initMajorCompanies();
   return newGame;
 };
 
@@ -103,14 +117,97 @@ export function getNextPlayer(playerNumber: number, game: IGame): number {
   return (playerNumber + 1) % numPlayers;
 }
 
-// delegated Response from a function that isn't a routed API
-export interface Response {
-  // hasRes determines if there are values for status, error, and message
-  hasRes: boolean;
-  status?: number;
-  error?: string;
-  message?: string;
-  values?: any;
+function initStockMarket(): IStockMarket {
+  const stockMarket = new StockMarket();
+  stockMarket.prices = [10, 20, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 165, 180, 200];
+  stockMarket.rows = [
+    {
+      mappedStartIndex: 7,
+      length: 15,
+    },
+    {
+      mappedStartIndex: 6,
+      length: 15,
+    },
+    {
+      mappedStartIndex: 5,
+      length: 14,
+    },
+    {
+      mappedStartIndex: 4,
+      length: 12,
+    },
+    {
+      mappedStartIndex: 3,
+      length: 9,
+    },
+    {
+      mappedStartIndex: 2,
+      length: 5,
+    },
+    {
+      mappedStartIndex: 1,
+      length: 5,
+    },
+    {
+      mappedStartIndex: 0,
+      length: 1,
+    },
+  ];
+  return stockMarket;
+};
+
+function initMajorCompanies(): Map<string, IMajorCompany> {
+  // NDM: 2 5% certificates
+  const ndm = getMajorCompany(
+    "NDM", "National Railways of Mexico", getStockCertificates(1, 7, 2));
+  const pr = getMajorCompany(
+    "FCP", "Pacific Railroad", getCommonStockSpread());
+  const mr = getMajorCompany(
+    "MR", "Mexican Railway", getCommonStockSpread());
+  // UDY: 1 10% reserved certificate. It doesn't count for float or toward ownership until after SR closes
+  const udy = getMajorCompany(
+    "UDY", "United Railways of Yucatan", getStockCertificates(1, 7, 0), 1);
+  const chi = getMajorCompany(
+    "CHI", "Chihuahua Pacific Railway", getCommonStockSpread());
+  const mcr = getMajorCompany(
+    "MCR", "Mexican Central Railway", getCommonStockSpread());
+  const tm = getMajorCompany(
+    "TM", "Texas-Mexican Railway", getCommonStockSpread());
+  const sud = getMajorCompany(
+    "SUD", "Southern Pacific Railroad of Mexico", getCommonStockSpread());
+  return [ndm, pr, mr, udy, chi, mcr, tm ,sud].reduce(function(map: Map<string, IMajorCompany>, company) {
+    map.set(company.shortName, company);
+    return map;
+  }, new Map());
+};
+
+function getMajorCompany(
+  shortName: string,
+  name: string,
+  ipoCerts: StockCertificates,
+  reservedCerts?: number,
+  ): IMajorCompany {
+  const majorCompany = new MajorCompany();
+  majorCompany.shortName = shortName;
+  majorCompany.name = name;
+  majorCompany.ipoCerts = ipoCerts;
+  majorCompany.reservedCerts = reservedCerts ?? 0;
+  return majorCompany;
 }
 
+function getCommonStockSpread(): StockCertificates {
+  return {
+    twenty: 1,
+    ten: 8,
+    five: 0,
+  };
+}
 
+function getStockCertificates(twenty: number, ten: number, five: number): StockCertificates {
+  return {
+    twenty: twenty,
+    ten: ten,
+    five: five,
+  };
+}
