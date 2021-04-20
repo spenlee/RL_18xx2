@@ -1,10 +1,10 @@
-import {IGame, Game} from '../models/game';
-import {IPlayer, Player} from '../models/player';
-import {IBank, Bank} from '../models/bank';
-import {IPrivateCompany, PrivateCompany} from '../models/private_company';
-import {IMinorCompany, MinorCompany} from '../models/minor_company';
-import {IStockMarket, StockMarket, MappedRow} from '../models/stock_market';
-import {IMajorCompany, MajorCompany, StockCertificates} from '../models/major_company';
+import { Bank } from '../models/bank';
+import { Game, IGame } from '../models/game';
+import { IMajorCompany, MajorCompany, StockCertificates } from '../models/major_company';
+import { IMinorCompany, MinorCompany } from '../models/minor_company';
+import { Player } from '../models/player';
+import { IPrivateCompany, PrivateCompany } from '../models/private_company';
+import { IStockMarket, StockMarket, StockSlot } from '../models/stock_market';
 
 // delegated Response from a function that isn't a routed API
 export interface Response {
@@ -28,7 +28,7 @@ export function initNewGame(numPlayers: number): IGame {
     } else if (numPlayers === 4) {
       player.money = 500;
     } else {
-      player. money = 450;
+      player.money = 450;
     }
     players.set("" + i, player);
   }
@@ -61,7 +61,7 @@ function initPrivateCompanies(): Map<string, IPrivateCompany> {
     "MIR", "Mexican International Railroad", 100, 20, 6);
   const mnr = getPrivateCompany(
     "MNR", "Mexican National Railroad", 140, 20, 7);
-  return [mcar, kcmor, mir, mnr].reduce(function(map: Map<string, IPrivateCompany>, company) {
+  return [mcar, kcmor, mir, mnr].reduce(function (map: Map<string, IPrivateCompany>, company) {
     map.set(company.shortName, company);
     return map;
   }, new Map());
@@ -73,7 +73,7 @@ function getPrivateCompany(
   parValue: number,
   revenue: number,
   bidOrder: number,
-  ): IPrivateCompany {
+): IPrivateCompany {
   const privateCompany = new PrivateCompany();
   privateCompany.shortName = shortName;
   privateCompany.name = name;
@@ -90,7 +90,7 @@ function initMinorCompanies(): Map<string, IMinorCompany> {
     "SBCR", "Sonora-Baja California Railroad", 50, 0, 4);
   const sr = getMinorCompany(
     "SR", "Southeastern Railway", 50, 0, 5);
-  return [ir, sbcr, sr].reduce(function(map: Map<string, IMinorCompany>, company) {
+  return [ir, sbcr, sr].reduce(function (map: Map<string, IMinorCompany>, company) {
     map.set(company.shortName, company);
     return map;
   }, new Map());
@@ -102,7 +102,7 @@ function getMinorCompany(
   parValue: number,
   revenue: number,
   bidOrder: number
-  ): IMinorCompany {
+): IMinorCompany {
   const minorCompany = new MinorCompany();
   minorCompany.shortName = shortName;
   minorCompany.name = name;
@@ -118,9 +118,9 @@ export function getNextPlayer(playerNumber: number, game: IGame): number {
 }
 
 function initStockMarket(): IStockMarket {
-  const stockMarket = new StockMarket();
-  stockMarket.prices = [10, 20, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 165, 180, 200];
-  stockMarket.rows = [
+  // rows are all a subsection of the price value list - with a different initial offset and length
+  const prices = [10, 20, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 165, 180, 200];
+  const rows = [
     {
       mappedStartIndex: 7,
       length: 15,
@@ -154,8 +154,56 @@ function initStockMarket(): IStockMarket {
       length: 1,
     },
   ];
+
+  const stockMarket = new StockMarket();
+  const chart: StockSlot[][] = new Array(rows.length);
+  rows.forEach((row, rowIndex) => {
+    chart[rowIndex] = new Array(row.length);
+    Array.from(Array(row.length).keys()).forEach(colIndex => {
+      chart[rowIndex][colIndex] = {
+        coordinate: {
+          row: rowIndex,
+          column: colIndex,
+        },
+        price: getStockSlotPrice(rowIndex, colIndex, prices, rows),
+        color: getStockSlotColor(rowIndex, colIndex),
+        isParValueSlot: isParValueSlot(rowIndex, colIndex),
+      };
+    });
+  });
+
+  stockMarket.chart = chart;
   return stockMarket;
 };
+
+// translation from offset stock chart to price array
+interface MappedRow {
+  mappedStartIndex: number,
+  length: number,
+}
+
+function getStockSlotPrice(row: number, col: number, prices: number[], rows: MappedRow[]): number {
+  // start at the mapped index (initial translation position) and adjust with the column index
+  return prices[rows[row].mappedStartIndex + col];
+}
+
+function getStockSlotColor(row: number, col: number): string {
+  if (row === 7 || row === 6 || row === 5 || (row === 4 && col === 0)) {
+    return "YELLOW";
+  }
+  return "NONE";
+}
+
+function isParValueSlot(row: number, col: number): boolean {
+  if ((row === 0 && col === 4)
+    || (row === 0 && col === 5)
+    || (row === 1 && col === 3)
+    || (row === 1 && col === 4)
+    || (row === 2 && col === 2)) {
+    return true;
+  }
+  return false;
+}
 
 function initMajorCompanies(): Map<string, IMajorCompany> {
   // NDM: 2 5% certificates
@@ -176,7 +224,7 @@ function initMajorCompanies(): Map<string, IMajorCompany> {
     "TM", "Texas-Mexican Railway", getCommonStockSpread());
   const sud = getMajorCompany(
     "SUD", "Southern Pacific Railroad of Mexico", getCommonStockSpread());
-  return [ndm, pr, mr, udy, chi, mcr, tm ,sud].reduce(function(map: Map<string, IMajorCompany>, company) {
+  return [ndm, pr, mr, udy, chi, mcr, tm, sud].reduce(function (map: Map<string, IMajorCompany>, company) {
     map.set(company.shortName, company);
     return map;
   }, new Map());
@@ -187,7 +235,7 @@ function getMajorCompany(
   name: string,
   ipoCerts: StockCertificates,
   reservedCerts?: number,
-  ): IMajorCompany {
+): IMajorCompany {
   const majorCompany = new MajorCompany();
   majorCompany.shortName = shortName;
   majorCompany.name = name;

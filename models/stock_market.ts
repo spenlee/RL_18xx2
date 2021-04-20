@@ -1,39 +1,54 @@
 import { Document, model, Schema } from "mongoose"
 
-// properties of a row to map to the price value list
-// rows are all a subsection of the price value list - with a different initial offset and length
-export interface MappedRow {
-  mappedStartIndex: number,
-  length: number,
+export interface StockSlot {
+  coordinate: Coordinate,
+  price: number,
+  color: string,
+  isParValueSlot: boolean,
+}
+
+// chart coordinates
+export interface Coordinate {
+  row: number,
+  column: number,
 }
 
 export interface IStockMarket extends Document {
-  // ordered list of stock market slot price values
-  prices: number[];
-  // map rows and their properties
-  rows: MappedRow[];
   // all the stock market slots that major companies populate
-  // the key is the single digit row + double digit column of the 18MEX stock chart
+  // the key is the <row>;<column> of the 18MEX stock chart
   // the value is the ordered list of companies in that stock slot
-	activeStockSlots: Map<string, string[]>;
-  // major company short name to active stock slot key
-  companyToStockSlotKey: Map<string, string>;
+  activeStockSlots: Map<string, string[]>;
+  // major company short name to stock slot
+  companyToStockSlotKey: Map<string, StockSlot>;
+  // stock chart
+  // top-left origin 2D grid, 0-index, positively increasing down the x and y axis
+  chart: StockSlot[][];
 }
 
 export const StockMarketSchema = new Schema({
-  prices: [Number],
-  rows: [{
-    mappedStartIndex: Number,
-    length: Number,
-  }],
   activeStockSlots: {
     type: Map,
-    of: [String]
+    of: [String],
+    default: {},
   },
   companyToStockSlotKey: {
     type: Map,
-    of: String
+    of: String,
+    default: {},
   },
+  chart: [[{
+    coordinate: {
+      row: Number,
+      column: Number,
+    },
+    price: Number,
+    color: {
+      type: String,
+      enum: ["NONE", "YELLOW"],
+      default: "NONE"
+    },
+    isParValueSlot: Boolean,
+  }]]
 });
 
 export const StockMarket = model<IStockMarket>('stockMarket', StockMarketSchema);
